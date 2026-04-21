@@ -1,0 +1,76 @@
+import numpy as np
+from scipy.sparse import csc_matrix
+from scipy.sparse.linalg import spsolve
+from getCoeff import getCoeff
+
+def Laplacien(num_2d, types_2d, cl_2d):
+    Nx = types_2d.shape[0]
+    Ny = types_2d.shape[1]
+
+    # N_total = max numéro de nœud + 1 (les nœuds sont numérotés à partir de 1)
+    N_total = int(np.max(num_2d)) + 1
+
+    data, rows, cols = [], [], []
+    b = np.zeros(N_total)
+
+    for i in range(Nx):
+        for j in range(Ny):
+            k_cent = int(num_2d[i, j])
+
+            # On saute les noeuds hors domaine (numérotés 0 dans num_2d)
+            if k_cent == 0:
+                continue
+
+            # Récupération des numéros des voisins via num_2d (on met 0 si bord de grille)
+            if i > 0:
+                k_left = int(num_2d[i - 1, j])
+            else:
+                k_left = 0
+
+            if i < Nx - 1:
+                k_right = int(num_2d[i + 1, j])
+            else:
+                k_right = 0
+
+            if j > 0:
+                k_down = int(num_2d[i, j - 1])
+            else:
+                k_down = 0
+
+            if j < Ny - 1:
+                k_up = int(num_2d[i, j + 1])
+            else:
+                k_up = 0
+
+            type_noeud = int(types_2d[i, j])
+            valeur_cl = float(cl_2d[i, j])
+
+            indices_j, coeffs_a, terme_b = getCoeff(k_left, k_right, k_down, k_up, k_cent, type_noeud, valeur_cl)
+
+            for index in range(len(coeffs_a)):
+                data.append(float(coeffs_a[index]))
+                rows.append(int(k_cent))
+                cols.append(int(indices_j[index]))
+
+            b[int(k_cent)] = float(terme_b)
+
+    A = csc_matrix((data, (rows, cols)), shape=(N_total, N_total))
+
+    # La ligne 0 ne correspond à aucun nœud réel (numérotation commence à 1)
+    # On lui impose une équation triviale pour éviter une matrice singulière
+    A = A.tolil()
+    A[0, 0] = 1.0
+    b[0] = 0.0
+    A = A.tocsc()
+
+    psi_vecteur = spsolve(A, b)
+
+    # Reconstruction 2D
+    psi_2d = np.zeros((Nx, Ny))
+    for i in range(Nx):
+        for j in range(Ny):
+            k = int(num_2d[i, j])
+            if k > 0:
+                psi_2d[i, j] = psi_vecteur[k]
+
+    return psi_2d
