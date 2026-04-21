@@ -58,8 +58,7 @@ def tracer_resultats(psi, pres, u, v, dom, h, titre_fenetre):
     plt.figure(figsize=(12, 6))
     plt.gca().invert_yaxis()
     plt.title("Lignes de courant", fontsize=18)
-    plt.streamplot(X_grid, Y_grid, u, v, density=1.5,
-                   color='cyan', linewidth=1.0, arrowsize=1.5)
+    plt.streamplot(X_grid, Y_grid, u, v, density=2.0, color='cyan', linewidth=1.2, arrowsize=1.5, broken_streamlines=False)
     plt.gca().set_facecolor('black')
     plt.xlabel("X [m]")
     plt.ylabel("Y [m]")
