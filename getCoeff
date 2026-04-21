@@ -1,0 +1,27 @@
+import numpy as np
+
+def getCoeff(num_left, num_right, num_down, num_up, num_cent, type_cent, cl_cent):
+
+    if type_cent == 1:
+        # On filtre les voisins hors domaine (num <= 0 signifie hors domaine ou bord de grille)
+        voisins = [num_left, num_right, num_down, num_up]
+        voisins_valides = [n for n in voisins if n > 0]
+
+        nb_valides = len(voisins_valides)
+
+        # Le coefficient diagonal vaut -nb de voisins valides
+        j = np.array(voisins_valides + [num_cent]).reshape(-1, 1)
+        a = np.array([1.0] * nb_valides + [-float(nb_valides)]).reshape(-1, 1)
+        b = 0
+
+    elif type_cent == 2:
+        a = np.array([1]).reshape(-1, 1)
+        j = np.array([num_cent]).reshape(-1, 1)
+        b = cl_cent
+
+    elif type_cent == 0:
+        a = np.array([1]).reshape(-1, 1)
+        j = np.array([num_cent]).reshape(-1, 1)
+        b = 0
+
+    return j, a, b
