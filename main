@@ -1,0 +1,142 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from Laplacien import Laplacien
+from velocity import velocity
+from pressure import pressure
+from force import force
+from circu import circu
+from cond_lim import generer_cl_obstacle
+
+# ============================================================
+# Paramètres du groupe (à modifier selon votre numéro de groupe)
+# Exemple : groupe 58 => X=5, Y=8
+# ============================================================
+X = 6   # chiffre des dizaines du numéro de groupe
+Y = 1   # chiffre des unités du numéro de groupe
+
+Q1 = 17 + 0.5 * X + 0.6 * Y   # débit entrant (m²/s)
+Q3 = Q1                         # débit sortant = entrant (conservation)
+
+# ============================================================
+
+def tracer_resultats(psi, pres, u, v, dom, h, titre_fenetre):
+    Nx, Ny = dom.shape
+    # Après .T au chargement : i=X (Nx points), j=Y (Ny points)
+    ext = (0, Ny * h, Nx * h, 0)
+
+    fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+    fig.suptitle(titre_fenetre, fontsize=16)
+
+    champs = {
+        "Fonction de courant": (psi, axes[0, 0]),
+        "Champ de pressions": (pres, axes[0, 1]),
+        "Vitesse horizontale (u)": (u, axes[1, 0]),
+        "Vitesse verticale (v)": (v, axes[1, 1])
+    }
+
+    for titre, (donnees, ax) in champs.items():
+        # .T pour que j=Y soit vertical et i=X soit horizontal
+        im = ax.imshow(donnees.T, cmap='viridis', interpolation='none', extent=ext)
+        fig.colorbar(im, ax=ax)
+        ax.set_title(titre)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+
+    plt.tight_layout()
+    plt.show()
+
+    # streamplot : x_val selon i=X, y_val selon j=Y
+    x_val = np.arange(Nx) * h
+    y_val = np.arange(Ny) * h
+    X_grid, Y_grid = np.meshgrid(x_val, y_val)
+
+    plt.figure(figsize=(12, 6))
+    plt.gca().invert_yaxis()
+    plt.title("Lignes de courant", fontsize=18)
+    # u[i,j] avec i=X, j=Y => streamplot attend U[y_idx, x_idx] => u.T
+    plt.streamplot(X_grid, Y_grid, u.T, v.T, density=1.5, color='cyan', linewidth=1.0, arrowsize=1.5)
+    plt.gca().set_facecolor('black')
+    plt.xlabel("X [m]")
+    plt.ylabel("Y [m]")
+    plt.show()
+
+
+def main(cas, Q2_param=0.0, Q4_param=0.0, psi_obstacle=None):
+
+    if cas == 1:
+        print("\n=== Lancement : Canal rectiligne ===")
+        h = 0.5
+
+        num = np.loadtxt('Configuration/1-num.txt', dtype=int).T
+        dom = np.loadtxt('Configuration/1-dom.txt', dtype=int).T
+        cl  = np.loadtxt('Configuration/1-cl.txt',  dtype=float).T
+
+        psi = Laplacien(num, dom, cl)
+        u, v = velocity(psi, dom, h)
+        pres = pressure(u, v, C=0)
+
+        tracer_resultats(psi, pres, u, v, dom, h, "Analyse du Canal Rectiligne")
+
+    elif cas == 2:
+        print("\n=== Lancement : Obstacle profilé ===")
+        print(f"    Q1={Q1:.2f}, Q2={Q2_param:.2f}, Q3={Q3:.2f}, Q4={Q4_param:.2f}")
+        h = 0.02
+
+        num = np.loadtxt('Configuration/2-num.txt', dtype=int).T
+        dom = np.loadtxt('Configuration/2-dom.txt', dtype=int).T
+        contour_obj = np.loadtxt('Configuration/2-contourObj.txt', dtype=int)
+
+        # Génération des conditions limites
+        cl = generer_cl_obstacle(dom, h, Q1, Q2_param, Q3, Q4_param,
+                                  psi_obstacle=psi_obstacle)
+
+        psi = Laplacien(num, dom, cl)
+        u, v = velocity(psi, dom, h)
+
+        # Extraction des coordonnées du contour
+        # contour_obj[k] = (ligne_fichier, colonne_fichier)
+        # Après .T : i_dom = colonne_fichier = contour_obj[k,1] (axe X)
+        #            j_dom = ligne_fichier   = contour_obj[k,0] (axe Y)
+        i_bord = contour_obj[:, 1]   # indices X dans dom_t
+        j_bord = contour_obj[:, 0]   # indices Y dans dom_t
+
+        u_bord = np.array([u[i_bord[k], j_bord[k]] for k in range(len(i_bord))])
+        v_bord = np.array([v[i_bord[k], j_bord[k]] for k in range(len(i_bord))])
+
+        x_bord = i_bord * h   # coordonnées X physiques
+        y_bord = j_bord * h   # coordonnées Y physiques
+
+        # Calcul de la circulation
+        circulation = circu(u_bord, v_bord, x_bord, y_bord)
+        print(f"-> Circulation : {circulation:.4f} m²/s")
+
+        # Pressions et forces
+        pres = pressure(u, v, C=100)
+        p_bord = pressure(u_bord, v_bord, C=100)
+
+        Fx, Fy = force(p_bord, x_bord, y_bord)
+        print(f"-> Force de traînée  (Fx) : {Fx:.4f} N/m")
+        print(f"-> Force de portance (Fy) : {Fy:.4f} N/m")
+
+        tracer_resultats(psi, pres, u, v, dom, h,
+                         f"Obstacle profilé — Q1={Q1:.1f}, Q2={Q2_param:.1f}")
+
+    else:
+        print("Cas non reconnu. Veuillez choisir 1 ou 2.")
+
+
+# ============================================================
+# Exécution — décommenter le cas souhaité
+# ============================================================
+
+# Cas 1 : canal rectiligne (vérification)
+#main(1)
+
+# Cas 2 - Question 2 : Q2=Q4=0, symétrique, psi_obstacle=Q1/2 (automatique)
+#main(2, Q2_param=0.0, Q4_param=0.0)
+
+# Cas 2 - Question 3 : Q2=Q1, Q4=Q3, même psi_obstacle qu'en Q2
+#main(2, Q2_param=Q1, Q4_param=Q3, psi_obstacle=Q1/2)
+
+# Cas 2 - Question 4 : ajuster psi_obstacle pour circulation nulle
+#main(2, Q2_param=Q1, Q4_param=Q3, psi_obstacle=VALEUR_A_TROUVER)
