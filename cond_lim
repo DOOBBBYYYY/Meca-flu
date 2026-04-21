@@ -4,103 +4,94 @@ def generer_cl_obstacle(dom_t, h, Q1, Q2, Q3, Q4, psi_obstacle=None):
     """
     Génère la matrice des conditions limites pour le cas obstacle profilé.
 
-    Convention (après .T au chargement) :
-        dom_t[i, j] avec i = axe X physique, j = axe Y physique
+    Convention après .T au chargement (identique au cas 1) :
+        dom_t[i, j]  avec  i = axe Y physique (vertical)
+                                j = axe X physique (horizontal)
+        dom_t.shape = (Nx, Ny)
+            Nx = nombre de points selon Y  (hauteur  = (Nx-1)*h)
+            Ny = nombre de points selon X  (largeur  = (Ny-1)*h)
 
-    Bords du domaine (type=2 dans dom_t) :
-        Bord gauche  : i=1,      j varie  => entrée Q1 (vitesse u_x = Q1 / hauteur_Y)
-        Bord droit   : i=Nx-2,   j varie  => sortie Q3 (vitesse u_x = Q3 / hauteur_Y)
-        Bord bas     : j=1,      i varie  => entrée Q2 (vitesse u_y = Q2 / largeur_X)
-        Bord haut    : j=Ny-2,   i varie  => sortie Q4 (vitesse u_y = Q4 / largeur_X)
+    Bords du domaine (type=2 en périphérie de dom_t) :
+        Bord gauche  j=1      : entrée Q1 (vitesse u_x = Q1 / hauteur_Y)
+        Bord droit   j=Ny-2   : sortie Q3
+        Bord bas     i=1      : paroi/entrée Q2 (vitesse v_y = Q2 / largeur_X)
+        Bord haut    i=Nx-2   : paroi/sortie Q4
 
     Relation débit / fonction de courant :
-        u = dpsi/dY => psi varie linéairement selon j (axe Y)
-            psi(j) = psi_ref + u * j * h = psi_ref + (Q1/hauteur_Y) * j * h
-        v = -dpsi/dX => psi varie linéairement selon i (axe X)
-            psi(i) = psi_ref + (-v) * i * h = psi_ref + (Q2/largeur_X) * i * h
+        u = +dpsi/dY  =>  psi varie selon i (axe Y)
+                          psi(i) = u * i * h   avec u = Q1 / largeur_X
+        v = -dpsi/dX  =>  psi varie selon j (axe X)
 
     Paramètres
     ----------
-    dom_t        : np.ndarray (Nx, Ny) — matrice de domaine après .T
-    h            : float — pas spatial (m)
-    Q1           : float — débit entrant bord gauche  (m²/s)
-    Q2           : float — débit entrant bord bas     (m²/s)  (0 si paroi imperméable)
-    Q3           : float — débit sortant bord droit   (m²/s)  (doit = Q1 par conservation)
-    Q4           : float — débit sortant bord haut    (m²/s)  (doit = Q2 par conservation)
-    psi_obstacle : float ou None — valeur de psi sur l'obstacle.
-                   Si None, calculée automatiquement pour la symétrie (Q2=Q4=0 : psi_obs=Q1/2)
+    dom_t        : np.ndarray (Nx, Ny)
+    h            : float
+    Q1           : débit entrant bord gauche  [m²/s]
+    Q2           : débit entrant bord bas     [m²/s]  (0 = imperméable)
+    Q3           : débit sortant bord droit   [m²/s]
+    Q4           : débit sortant bord haut    [m²/s]  (0 = imperméable)
+    psi_obstacle : float ou None (None => Q1/2, symétrie)
 
     Retourne
     --------
-    cl_t : np.ndarray (Nx, Ny) — matrice des conditions limites (même convention que dom_t)
+    cl_t : np.ndarray (Nx, Ny)
     """
 
     Nx, Ny = dom_t.shape
-
-    # Dimensions physiques
-    hauteur_Y = (Ny - 1) * h   # dimension selon j (Y)
-    largeur_X = (Nx - 1) * h   # dimension selon i (X)
+    # Avec i=Y, j=X :
+    hauteur_Y = (Nx - 1) * h    # dimension selon i (Y)
+    largeur_X = (Ny - 1) * h    # dimension selon j (X)
 
     # Vitesses uniformes perpendiculaires à chaque bord
-    u_gauche = Q1 / hauteur_Y   # vitesse en X sur le bord gauche
-    u_droit  = Q3 / hauteur_Y   # vitesse en X sur le bord droit
-    v_bas    = Q2 / largeur_X   # vitesse en Y sur le bord bas
-    v_haut   = Q4 / largeur_X   # vitesse en Y sur le bord haut
+    u_gauche = Q1 / hauteur_Y   # u entrant par le bord gauche (j=1)
+    u_droit  = Q3 / hauteur_Y   # u sortant par le bord droit  (j=Ny-2)
+    v_bas    = Q2 / largeur_X   # v entrant par le bord bas    (i=1)
+    v_haut   = Q4 / largeur_X   # v sortant par le bord haut   (i=Nx-2)
 
-    # Valeur de psi sur l'obstacle
     if psi_obstacle is None:
-        # Cas symétrique (Q2=Q4=0) : l'obstacle est au milieu => psi_obs = Q1/2
         psi_obstacle = Q1 / 2.0
 
-    # Initialisation de la matrice cl à zéro
     cl_t = np.zeros((Nx, Ny))
 
-    # -----------------------------------------------------------------------
-    # Bord gauche (i=1) : entrée Q1, u uniforme
-    # u = dpsi/dY => psi(j) = psi_bas_gauche + u_gauche * j * h
-    # On pose psi=0 en bas (j=1) du bord gauche
-    # -----------------------------------------------------------------------
-    psi_bas_gauche = 0.0
-    for j in range(Ny):
-        if dom_t[1, j] == 2:
-            cl_t[1, j] = psi_bas_gauche + u_gauche * j * h
-
-    # -----------------------------------------------------------------------
-    # Bord droit (i=Nx-2) : sortie Q3, u uniforme
-    # Même valeur que le bord gauche (conservation du débit, écoulement uniforme)
-    # -----------------------------------------------------------------------
-    for j in range(Ny):
-        if dom_t[Nx-2, j] == 2:
-            cl_t[Nx-2, j] = psi_bas_gauche + u_droit * j * h
-
-    # -----------------------------------------------------------------------
-    # Bord bas (j=1) : entrée/paroi Q2, v uniforme
-    # v = -dpsi/dX => psi(i) = psi_gauche_bas + v_bas * i * h  (si Q2>0, v>0)
-    # Attention : la valeur en i=1 doit être cohérente avec le bord gauche
-    # psi(i=1, j=1) est déjà fixé par le bord gauche => point de référence
-    # -----------------------------------------------------------------------
-    psi_coin_bas_gauche = cl_t[1, 1]  # valeur au coin bas-gauche
+    # ------------------------------------------------------------------
+    # Bord gauche (j=1) : u = Q1/hauteur_Y uniforme
+    # u = dpsi/dY => psi varie selon i => psi(i) = u_gauche * i * h
+    # ------------------------------------------------------------------
     for i in range(Nx):
         if dom_t[i, 1] == 2:
-            cl_t[i, 1] = psi_coin_bas_gauche + v_bas * (i - 1) * h
+            cl_t[i, 1] = u_gauche * i * h
 
-    # -----------------------------------------------------------------------
-    # Bord haut (j=Ny-2) : sortie/paroi Q4, v uniforme
-    # psi_coin_haut_gauche = valeur au coin haut-gauche
-    # -----------------------------------------------------------------------
-    psi_coin_haut_gauche = cl_t[1, Ny-2]  # déjà calculé par bord gauche
+    # ------------------------------------------------------------------
+    # Bord droit (j=Ny-2) : même profil (conservation du débit)
+    # ------------------------------------------------------------------
     for i in range(Nx):
         if dom_t[i, Ny-2] == 2:
-            cl_t[i, Ny-2] = psi_coin_haut_gauche + v_haut * (i - 1) * h
+            cl_t[i, Ny-2] = u_droit * i * h
 
-    # -----------------------------------------------------------------------
-    # Obstacle : tous les noeuds type=2 qui ne sont pas sur les 4 bords
-    # On leur impose psi = psi_obstacle
-    # -----------------------------------------------------------------------
+    # ------------------------------------------------------------------
+    # Bord bas (i=1) : v = Q2/largeur_X uniforme
+    # v = -dpsi/dX => psi varie selon j
+    # psi(j) = psi(i=1,j=1) + v_bas * (j-1) * h
+    # ------------------------------------------------------------------
+    psi_coin_bas_gauche = cl_t[1, 1]
+    for j in range(Ny):
+        if dom_t[1, j] == 2:
+            cl_t[1, j] = psi_coin_bas_gauche + v_bas * (j - 1) * h
+
+    # ------------------------------------------------------------------
+    # Bord haut (i=Nx-2) : v = Q4/largeur_X uniforme
+    # ------------------------------------------------------------------
+    psi_coin_haut_gauche = cl_t[Nx-2, 1]
+    for j in range(Ny):
+        if dom_t[Nx-2, j] == 2:
+            cl_t[Nx-2, j] = psi_coin_haut_gauche + v_haut * (j - 1) * h
+
+    # ------------------------------------------------------------------
+    # Obstacle : noeuds type=2 intérieurs (hors périphérie)
+    # ------------------------------------------------------------------
     for i in range(1, Nx-1):
         for j in range(1, Ny-1):
             if dom_t[i, j] == 2:
-                # Vérifier que ce n'est pas un bord du domaine extérieur
                 if i != 1 and i != Nx-2 and j != 1 and j != Ny-2:
                     cl_t[i, j] = psi_obstacle
 
