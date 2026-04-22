@@ -1,0 +1,214 @@
+\documentclass[a4paper, 11pt]{article}
+\usepackage{tikz} 
+%% Language and font encodings %%%%%%
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{placeins}
+\usepackage{graphicx} % à mettre dans le préambule
+
+%%%%%%% Page Size, Geometry and Margin Size %%%%%%%%%
+\usepackage[a4paper,top=2cm,bottom=2cm,left=2cm,right=2cm,marginparwidth=1.5cm]{geometry}
+
+%%%%%%% USEFUL PACKAGES %%%%%%%%%
+\usepackage{enumitem}
+\usepackage{minted} % Allow for code style
+\usemintedstyle{vs}%{borland} 
+\usepackage[dvipsnames, svgnames, table]{xcolor}    % Allow to use colors (even within tables)
+\usepackage[colorlinks=true, linkcolor=blue, urlcolor=blue, hyperfigures=true]{hyperref} % Allow to make cross-references and links
+\usepackage{graphicx} % Allow to insert figures
+%\usepackage{subfigure}
+\usepackage[format=hang]{caption} % Caption for figures
+\usepackage{subcaption}
+\captionsetup{format=hang, labelfont=bf}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\setlength{\fboxsep}{20pt}
+\definecolor{monGris}{RGB}{43, 43, 43}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, 3d, calc, decorations.markings, patterns}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage[dvipsnames, svgnames, table]{xcolor}
+
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%% TITLE PAGE %%%%%%%%%%%%%%%%%%%%%%%%
+\begin{titlepage}
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+\center
+~\\
+\vspace{3cm}
+\begin{center}
+    \includegraphics[width=1\textwidth]{logo.png}
+\end{center}
+
+\HRule \\[0.5cm]
+{ \huge \bfseries  MECA0011-2 :  Elément de mécanique des fluides \\
+  ~\\ \Large Rapport de projet}\\[0.5cm]	
+    ~\\ \Large Rapport \\[0.5cm]								
+\HRule ~\\[2cm]
+\large
+\vspace{3cm}
+
+{\Large
+\begin{flushleft}
+\begin{tabular}{l|l}
+    Professeur & Pirotton Michel \\
+    Assistant & Schmitz Vincent \\
+    Auteurs & Halin Nicolas (SXXXXXXX), \\ & Himbert Archibald (SXXXXXXX), Nix Simon (S2301799) \\
+    Groupe & n°61
+\end{tabular}
+\end{flushleft}
+}
+
+
+
+
+\vfill
+\begin{center}
+    \textsc{Année académique 2025 - 2026}    
+\end{center}
+\end{titlepage}
+
+\newpage
+\section*{Question 1 : Conditions aux limites (type et localisation)}
+
+Cet écoulement modélise un fluide parfait et incompressible. Le flux devient ainsi irrotationnel. L’équation de Laplace ($\nabla^2\psi = 0$) régit alors son comportement. Ce problème exige une solution unique. Nous définissons donc des conditions aux limites sur l'intégralité du contour fermé du domaine.
+
+\begin{itemize}
+    \item \textbf{Parois inférieure et supérieure :} 
+    Ces obstacles imposent au fluide une condition de non-pénétration ($\vec{v} \cdot \vec{n} = 0$). Aucune masse ne traverse ces frontières physiques. La fonction de courant $\psi$ reste mathématiquement constante le long de ces parois. Une convention fixe $\psi = 0$ sur le mur inférieur. Le mur supérieur prend la valeur $\psi = Q_1$. L’îlot immergé forme lui aussi une ligne de courant. Sa valeur $\psi$ demeure par conséquent constante.
+    
+    \item \textbf{Entrée et sortie :} 
+    Ces zones modélisent une vitesse incidente uniforme. Nous y imposons une transition linéaire. Cette variation relie la valeur inférieure ($0$) à la valeur supérieure ($Q_1$) de la fonction $\psi$.
+\end{itemize}
+
+Nous fixons directement la valeur de la fonction $\psi$ sur les frontières. Nous ignorons son gradient ou sa dérivée. Cette démarche caractérise exclusivement des conditions aux limites de Dirichlet.
+
+\section*{Question 2 : Détermination des débits et traitement de l'îlot}
+
+L'annexe du projet définit le débit d'entrée $Q_1$ par une formule générale. Cette expression exploite le chiffre des dizaines ($X$) et celui des unités ($Y$) du numéro de groupe :
+\begin{equation}
+Q_1 = 17 + 0,5X + 0,6Y \quad [m^2/s]
+\end{equation}
+
+Notre groupe porte le numéro 61. Nous identifions ainsi les paramètres $X=6$ et $Y=1$. L'application numérique détaille le calcul suivant :
+\begin{equation}
+Q_1 = 17 + 0,5 \times 6 + 0,6 \times 1 = 17 + 3 + 0,6 = 20,6 \text{ m}^2/s
+\end{equation}
+
+Les limites horizontales du canal sont imperméables. Cette réalité physique interdit tout passage de fluide à travers les parois supérieures et inférieures. Nous posons donc $Q_2 = 0$ et $Q_4 = 0 \text{ m}^2/s$. 
+Le principe de conservation de la masse régit l'écoulement. Le fluide est incompressible et le régime est stationnaire. Tout volume entrant doit nécessairement sortir du système. Le débit de sortie $Q_3$ s'équilibre ainsi sur la valeur de $Q_1$. Nous obtenons $Q_3 = 20,6 \text{ m}^2/s$.
+
+L'îlot forme un obstacle solide immergé. Le fluide ne traverse jamais ses parois (vitesse normale nulle). Le contour de l'objet constitue donc une ligne de courant fermée. Nous imposons une valeur de $\psi$ constante sur l'intégralité de ce contour. L'obstacle est supposé parfaitement centré et symétrique. La ligne de courant d'arrêt se divise exactement en son milieu. Nous fixons donc cette constante à la moitié du débit total, soit $\psi_{\text{ilot}} = 10,3 \text{ m}^2/s$. Ce choix numérique annule la circulation globale autour du profil ($\Gamma = 0$). Il garantit un écoulement purement symétrique sans génération de portance initiale.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{Q2.png}
+    \caption{Écoulement potentiel symétrique initial ($\psi_{ilot} = 10,3 \text{ m}^2/s$). On observe une symétrie parfaite entre l'intrados et l'extrados.}
+    \label{fig:sym_initial}
+\end{figure}
+
+\section*{Question 3 : Évolution de la circulation sous conditions constantes}
+
+La circulation n'évolue pas. Elle conserve une valeur strictement constante. L'équation de Laplace ($\nabla^2 \psi = 0$) régit ce problème. Ce modèle elliptique garantit une solution mathématique unique pour un jeu défini de conditions de Dirichlet. Le maintien des valeurs $\psi$ sur le bord d'entrée et sur l'îlot fige entièrement la résolution. Le champ de la fonction de courant devient alors immuable dans l'ensemble du domaine.
+
+Les composantes de la vitesse dérivent directement de cette fonction spatiale. La configuration vectorielle de l'écoulement reste par conséquent statique. La définition de la circulation exprime l'intégrale de la vitesse le long du contour fermé de l'obstacle :
+\begin{equation}
+\Gamma = \oint_{\text{îlot}} \vec{v} \cdot d\vec{l}
+\end{equation}
+
+Cette intégrale donne logiquement un résultat invariable puisque la vitesse locale ne subit aucune modification. Physiquement, cette fixation arbitraire de $\psi$ sur l'obstacle bloque la rotation globale du flux. L'écoulement potentiel perd sa liberté d'ajustement. Le fluide ne peut plus modifier l'emplacement de ses points d'arrêt.
+
+\begin{figure}[htbp]
+    \centering
+    % Remplace par le bon nom de fichier (ex: fig_Q3_diagonale.jpg)
+    \includegraphics[width=0.5\textwidth]{Q3.png}
+    \caption{Écoulement incident incliné avec une fonction de courant figée sur l'obstacle ($\psi_{\text{ilot}} = 10,3 \text{ m}^2/s$). Le champ de vitesse est contraint mathématiquement, forçant une circulation arbitraire ($\Gamma \approx 20,1 \text{ m}^2/s$) et un déplacement non physique des points d'arrêt.}
+    \label{fig:q3_figee}
+\end{figure}
+
+\section*{Question 4 : Annulation de la circulation et réalisme physique}
+
+Une recherche itérative a permis de déterminer la valeur exacte de la condition de Dirichlet sur l'îlot. Nous imposons $\psi_{\text{ilot}} = 16,253 \text{ m}^2/\text{s}$ pour forcer une circulation numérique quasi nulle ($\Gamma = 0,0195 \text{ m}^2/\text{s}$).
+
+\begin{figure}[htbp]
+    \centering
+    % Remplace par le nom de ton image avec les lignes de courant aberrantes
+    \includegraphics[width=0.5\textwidth]{VitessesQ4.png}
+    \caption{Champ des vitesses et lignes de courant pour une circulation forcée à zéro.}
+    \label{fig:circ_nulle}
+\end{figure}
+\begin{figure}[htbp]
+    \centering
+    % Remplace par le nom de ton image avec les lignes de courant aberrantes
+    \includegraphics[width=0.65\textwidth]{CourantQ4.png}
+    \caption{Champ des vitesses et lignes de courant pour une circulation forcée à zéro.}
+    \label{fig:circ_nulle}
+\end{figure}
+
+La physique de cet écoulement s'avère totalement irréaliste. Le graphique des lignes de courant révèle une aberration au niveau de la pointe de fuite (l'arrière du profil). Le fluide ne quitte pas l'obstacle dans le prolongement de sa géométrie. Il contourne violemment l'arête vive par le bas pour remonter sur l'extrados. Le point d'arrêt arrière se déplace et quitte la pointe de l'obstacle. Le champ de pression confirme cette anomalie en affichant une dépression extrême sur cette arête, traduisant une vitesse de contournement théoriquement infinie.
+
+Cette configuration mathématique viole la réalité physique d'un fluide. La viscosité réelle interdit un tel contournement d'une arête vive. La couche limite se sépare obligatoirement à la pointe de fuite. Ce détachement naturel impose au fluide de quitter le profil de manière lisse et continue. Cette exigence porte le nom de condition de Kutta. Notre modèle (non visqueux) autorise mathématiquement cette solution à circulation nulle, mais elle constitue une pure construction théorique sans existence physique.
+
+\section*{Question 5 : Condition de Kutta et influence de l'incidence}
+
+L'annexe fixe l'amplitude de la vitesse incidente à $U_{\infty} = 9,9$ m/s pour le groupe 61. L'orientation $\alpha$ du flux varie entre $-15^\circ$ et $+15^\circ$. Cette rotation modifie les composantes de la vitesse aux frontières du domaine. Un algorithme calcule la circulation $\Gamma$ nécessaire pour satisfaire la condition de Kutta. L'annulation de la vitesse transversale dans le sillage immédiat de l'obstacle détermine cette valeur optimale.
+
+\begin{figure}[htbp]
+    \centering
+    % Remplace par ton image 64d506.png
+    \includegraphics[width=0.5\textwidth]{gammaQ5.png}
+    \caption{Évolution strictement linéaire de la circulation $\Gamma$ en fonction de $\sin(\alpha)$.}
+    \label{fig:courbe_kutta}
+\end{figure}
+
+Le graphique obtenu (Figure \ref{fig:courbe_kutta}) valide parfaitement la théorie des profils minces. La circulation $\Gamma$ évolue de manière strictement proportionnelle au sinus de l'angle d'attaque. La droite passe par l'origine du repère. Une incidence nulle génère logiquement une circulation nulle en raison de la symétrie du profil.
+
+\begin{figure}[htbp]
+    \centering
+    % Remplace par ton image 64d4e6.jpg
+    \includegraphics[width=0.7\textwidth]{CourantQ5.png}
+    \caption{Lignes de courant corrigées ($\alpha = 5^\circ$). Le fluide quitte la pointe de manière lisse.}
+    \label{fig:lignes_kutta}
+\end{figure}
+
+L'analyse visuelle de l'écoulement à $5^\circ$ confirme cette correction physique (Figure \ref{fig:lignes_kutta}). Le fluide quitte l'arête de fuite de manière parfaitement lisse et horizontale. Le point d'arrêt arrière se fixe exactement sur la pointe de l'obstacle. Les survitesses irréalistes disparaissent totalement du champ de pression. Le modèle potentiel, grâce à l'imposition de la circulation adéquate, reproduit fidèlement la portance d'une aile réelle.
+
+\section*{Question 6 : Influence de l'amplitude de la vitesse incidente}
+
+L'annexe impose une orientation fixe de la vitesse incidente. Le groupe 61 utilise l'angle $\alpha_{fix} = 32.8^\circ$. L'étude fait désormais varier l'amplitude globale du flux $U_{\infty}$. Le programme décompose chaque nouvelle amplitude en débits aux frontières selon cet angle d'attaque constant. L'algorithme de résolution direct détermine la circulation $\Gamma$ optimale pour imposer la condition de Kutta à la pointe arrière.
+
+\begin{figure}[htbp]
+    \centering
+    % Remplace par le nom de ton futur graphique Python
+    \includegraphics[width=0.5\textwidth]{gammaQ6.png}
+    \caption{Évolution de la circulation $\Gamma$ en fonction de l'amplitude de la vitesse incidente $U_{\infty}$.}
+    \label{fig:gamma_vitesse}
+\end{figure}
+
+L'aérodynamique théorique postule une relation linéaire entre la vitesse du fluide et la portance générée. Le graphique obtenu (Figure \ref{fig:gamma_vitesse}) confirme totalement ce modèle physique. La circulation évolue de manière strictement proportionnelle à l'amplitude de la vitesse. La droite passe par l'origine du repère analytique. Une vitesse nulle annule logiquement toute circulation autour du profil. Le modèle numérique potentiel reproduit donc avec succès les deux lois fondamentales de la théorie des profils minces (dépendance linéaire à l'incidence et à la vitesse).
+
+\section*{Question 7 : Relation entre portance et vitesse incidente}
+
+Le théorème de Kutta-Joukowski relie fondamentalement la portance, la vitesse et la circulation. L'équation pose la relation directe $F_L = \rho \cdot U_\infty \cdot \Gamma$. Les résultats de la section précédente démontrent une proportionnalité stricte entre la circulation et l'amplitude de la vitesse incidente ($\Gamma \propto U_\infty$). 
+
+\begin{figure}[htbp]
+    \centering
+    % Remplace par ton image générée par le Cas 7
+    \includegraphics[width=0.4\textwidth]{Q7.png}
+    \caption{Évolution quadratique de la portance $F_L$ en fonction de l'amplitude de la vitesse incidente $U_{\infty}$.}
+    \label{fig:portance_vitesse}
+\end{figure}
+
+L'injection de cette linéarité dans le théorème théorique implique une relation quadratique finale. La force de portance générée par l'obstacle évolue donc proportionnellement au carré de la vitesse incidente ($F_L \propto U_\infty^2$). 
+
+Le graphique tracé (Figure \ref{fig:portance_vitesse}) illustre cette conclusion majeure. La courbe de la portance dessine une parabole parfaite. Le doublement de la vitesse incidente engendre le quadruplement de la force de portance. Cette loi quadratique valide la cohérence globale du modèle numérique potentiel utilisé tout au long de cette étude.
+
+
+\end{document}
