@@ -1,5 +1,5 @@
 def circu(u, v, x, y):
-    c = 0.0  # circulation finale à renvoyer (on l'initialise en float avec .0)
+    c = 0.0  
     ci = 0.0
 
     for i in range(len(x) - 1):
