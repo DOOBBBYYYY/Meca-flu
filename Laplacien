@@ -7,7 +7,6 @@ def Laplacien(num_2d, types_2d, cl_2d):
     Nx = types_2d.shape[0]
     Ny = types_2d.shape[1]
 
-    # N_total = max numéro de nœud + 1 (les nœuds sont numérotés à partir de 1)
     N_total = int(np.max(num_2d)) + 1
 
     data, rows, cols = [], [], []
@@ -17,11 +16,9 @@ def Laplacien(num_2d, types_2d, cl_2d):
         for j in range(Ny):
             k_cent = int(num_2d[i, j])
 
-            # On saute les noeuds hors domaine (numérotés 0 dans num_2d)
             if k_cent == 0:
                 continue
 
-            # Récupération des numéros des voisins via num_2d (on met 0 si bord de grille)
             if i > 0:
                 k_left = int(num_2d[i - 1, j])
             else:
@@ -56,8 +53,6 @@ def Laplacien(num_2d, types_2d, cl_2d):
 
     A = csc_matrix((data, (rows, cols)), shape=(N_total, N_total))
 
-    # La ligne 0 ne correspond à aucun nœud réel (numérotation commence à 1)
-    # On lui impose une équation triviale pour éviter une matrice singulière
     A = A.tolil()
     A[0, 0] = 1.0
     b[0] = 0.0
@@ -65,7 +60,6 @@ def Laplacien(num_2d, types_2d, cl_2d):
 
     psi_vecteur = spsolve(A, b)
 
-    # Reconstruction 2D
     psi_2d = np.zeros((Nx, Ny))
     for i in range(Nx):
         for j in range(Ny):
