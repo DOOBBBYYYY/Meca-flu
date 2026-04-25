@@ -14,6 +14,5 @@ def deriv(f_left, f_c, f_right, type_left, type_c, type_right, h):
         
     else:
         v = 0.0 
-        print("Avertissement : Nœud isolé, dérivée mise à 0.")
 
     return v
