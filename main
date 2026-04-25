@@ -7,11 +7,11 @@ from force import force
 from circu import circu
 from cond_lim import generer_cl_obstacle
 
-X = 6   # chiffre des dizaines du numéro de groupe
-Y = 1   # chiffre des unités du numéro de groupe
+X = 6   
+Y = 1   
 
-Q1 = 17 + 0.5 * X + 0.6 * Y   # débit entrant [m²/s]
-Q3 = Q1                         # conservation du débit
+Q1 = 17 + 0.5 * X + 0.6 * Y  
+Q3 = Q1                         
 
 def tracer_resultats(psi, pres, u, v, dom, h, titre_fenetre):
     Nx, Ny = dom.shape
@@ -76,8 +76,8 @@ def main(cas, Q2_param=0.0, Q4_param=0.0, psi_obstacle=None):
         dom = np.loadtxt('Configuration/2-dom.txt', dtype=int).T
 
         contour_obj = np.loadtxt('Configuration/2-contourObj.txt', dtype=int)
-        i_bord = contour_obj[:, 1]   # indices i=Y dans dom_t
-        j_bord = contour_obj[:, 0]   # indices j=X dans dom_t
+        i_bord = contour_obj[:, 1]   
+        j_bord = contour_obj[:, 0]   
 
         cl = generer_cl_obstacle(dom, h, Q1, Q2_param, Q3, Q4_param,
                                   psi_obstacle=psi_obstacle)
@@ -92,14 +92,14 @@ def main(cas, Q2_param=0.0, Q4_param=0.0, psi_obstacle=None):
         y_bord = i_bord * h   
 
         circulation = circu(u_bord, v_bord, x_bord, y_bord)
-        print(f"-> Circulation : {circulation:.4f} m²/s")
+        print(f"Circulation : {circulation:.4f} m²/s")
 
         pres = pressure(u, v, C=100)
         p_bord = pressure(u_bord, v_bord, C=100)
 
         Fx, Fy = force(p_bord, x_bord, y_bord)
-        print(f"-> Force de traînée  (Fx) : {Fx:.4f} N/m")
-        print(f"-> Force de portance (Fy) : {Fy:.4f} N/m")
+        print(f"Force de traînée  (Fx) : {Fx:.4f} N/m")
+        print(f"Force de portance (Fy) : {Fy:.4f} N/m")
 
         tracer_resultats(psi, pres, u, v, dom, h, f"Obstacle profilé — Q1={Q1:.1f}, Q2={Q2_param:.1f}")
 
@@ -125,10 +125,10 @@ def main(cas, Q2_param=0.0, Q4_param=0.0, psi_obstacle=None):
             v_b = np.array([v_tmp[i_bord[k], j_bord[k]] for k in range(len(i_bord))])
             
             circ = circu(u_b, v_b, j_bord * h, i_bord * h)
-            print(f"   -> Circulation obtenue : {circ:.4f}")
+            print(f"Circulation obtenue : {circ:.4f}")
             
             if abs(circ) < 0.05: 
-                print(f">>> VALEUR TROUVÉE ! psi_obstacle = {psi_test:.3f} <<<")
+                print(f"Valeur trouvée : psi_obstacle = {psi_test:.3f} <<<")
                 main(2, Q2_param=Q1, Q4_param=Q3, psi_obstacle=psi_test)
                 break
             
@@ -144,7 +144,7 @@ def main(cas, Q2_param=0.0, Q4_param=0.0, psi_obstacle=None):
         Ly = (Nx - 1) * h
         Lx = (Ny - 1) * h
 
-        U_inf = 8 + 0.3 * 6 + 0.1 * 1  # 9.9 m/s
+        U_inf = 8 + 0.3 * 6 + 0.1 * 1  
         alphas_deg = np.linspace(-15, 15, 7)
         gammas = []
         sin_alphas = []
@@ -153,8 +153,8 @@ def main(cas, Q2_param=0.0, Q4_param=0.0, psi_obstacle=None):
         i_tip = i_bord[idx_tip]
         j_tip = j_bord[idx_tip]
 
-        print(f"-> Vitesse incidente fixée : U_inf = {U_inf} m/s")
-        print(f"-> Coordonnées de la pointe arrière (i, j) = ({i_tip}, {j_tip})")
+        print(f"Vitesse incidente fixée : U_inf = {U_inf} m/s")
+        print(f"Coordonnées de la pointe arrière (i, j) = ({i_tip}, {j_tip})")
 
         for alpha in alphas_deg:
             alpha_rad = np.radians(alpha)
@@ -174,14 +174,11 @@ def main(cas, Q2_param=0.0, Q4_param=0.0, psi_obstacle=None):
             psi_1 = psi_milieu - 5.0
             psi_2 = psi_milieu + 5.0
             
-            print(f"   Étape 1/3 Calcul du point A (psi = {psi_1:.2f})")
             cl_1 = generer_cl_obstacle(dom, h, Q1_a, Q2_a, Q3_a, Q4_a, psi_obstacle=psi_1)
             psi_tmp1 = Laplacien(num, dom, cl_1)
             u_tmp1, v_tmp1 = velocity(psi_tmp1, dom, h)
-            # On regarde la vitesse verticale (v) à 2 pixels DERRIÈRE la pointe
             v_1 = v_tmp1[i_tip, j_tip + 2] 
 
-            print(f"   Étape 2/3 Calcul du point B (psi = {psi_2:.2f})")
             cl_2 = generer_cl_obstacle(dom, h, Q1_a, Q2_a, Q3_a, Q4_a, psi_obstacle=psi_2)
             psi_tmp2 = Laplacien(num, dom, cl_2)
             u_tmp2, v_tmp2 = velocity(psi_tmp2, dom, h)
@@ -194,7 +191,6 @@ def main(cas, Q2_param=0.0, Q4_param=0.0, psi_obstacle=None):
                 print("   [!] Pente instable, limitation de psi_opt.")
                 best_psi = psi_milieu
             
-            print(f"   Étape 3/3 Validation mathématique (psi_opt = {best_psi:.3f})")
             cl_final = generer_cl_obstacle(dom, h, Q1_a, Q2_a, Q3_a, Q4_a, psi_obstacle=best_psi)
             psi_final = Laplacien(num, dom, cl_final)
             u_final, v_final = velocity(psi_final, dom, h)
@@ -236,7 +232,7 @@ def main(cas, Q2_param=0.0, Q4_param=0.0, psi_obstacle=None):
         Ly = (Nx - 1) * h
         Lx = (Ny - 1) * h
 
-        alpha_fix_deg = 20 + 2 * 6 + 0.8 * 1  # 32.8°
+        alpha_fix_deg = 20 + 2 * 6 + 0.8 * 1  
         alpha_rad = np.radians(alpha_fix_deg)
         
         U_infs = np.linspace(5, 20, 6)
@@ -246,7 +242,7 @@ def main(cas, Q2_param=0.0, Q4_param=0.0, psi_obstacle=None):
         i_tip = i_bord[idx_tip]
         j_tip = j_bord[idx_tip]
 
-        print(f"-> Angle d'incidence fixé : alpha = {alpha_fix_deg}°")
+        print(f"Angle d'incidence fixé : alpha = {alpha_fix_deg}°")
 
         for U_inf in U_infs:
             U_x = U_inf * np.cos(alpha_rad)
@@ -285,7 +281,7 @@ def main(cas, Q2_param=0.0, Q4_param=0.0, psi_obstacle=None):
             circ = circu(u_b, v_b, j_bord * h, i_bord * h)
             
             gammas.append(circ)
-            print(f"Kutta validé ! psi_optimal = {best_psi:.3f} | Circulation = {circ:.4f}")
+            print(f"psi_optimal = {best_psi:.3f} | Circulation = {circ:.4f}")
 
         plt.figure(figsize=(8, 6))
         plt.plot(U_infs, gammas, 'g-o', linewidth=2.5, markersize=8, color='darkorange')
@@ -311,9 +307,9 @@ def main(cas, Q2_param=0.0, Q4_param=0.0, psi_obstacle=None):
         Ly = (Nx - 1) * h
         Lx = (Ny - 1) * h
 
-        alpha_fix_deg = 20 + 2 * 6 + 0.8 * 1  # 32.8°
+        alpha_fix_deg = 20 + 2 * 6 + 0.8 * 1  
         alpha_rad = np.radians(alpha_fix_deg)
-        rho = 1000.0
+        rho = 1.2
         
         U_infs = np.linspace(5, 20, 6)
         portances_FL = []
@@ -376,20 +372,384 @@ def main(cas, Q2_param=0.0, Q4_param=0.0, psi_obstacle=None):
         plt.ylim(bottom=0)
         
         plt.show()
-
     else:
-        print("Cas non reconnu.")
+        print("Cas non reconnu")
 
-# Cas 1 : canal rectiligne (vérification)
-# main(1)
+main(6)import numpy as np
+import matplotlib.pyplot as plt
+from Laplacien import Laplacien
+from velocity import velocity
+from pressure import pressure
+from force import force
+from circu import circu
+from cond_lim import generer_cl_obstacle
 
-# Question 2 : Q2=Q4=0, symétrique, psi_obstacle=Q1/2 (automatique)
-#main(2, Q2_param=0.0, Q4_param=0.0)
+X = 6   
+Y = 1   
 
-# Question 3 : Q2=Q1, Q4=Q3, même psi_obstacle qu'en Q2
-#main(2, Q2_param=Q1, Q4_param=Q3, psi_obstacle=Q1/2)
+Q1 = 17 + 0.5 * X + 0.6 * Y  
+Q3 = Q1                         
 
-# Question 4 : ajuster psi_obstacle pour circulation nulle
-# main(2, Q2_param=Q1, Q4_param=Q3, psi_obstacle=VALEUR_A_TROUVER)
+def tracer_resultats(psi, pres, u, v, dom, h, titre_fenetre):
+    Nx, Ny = dom.shape
+    ext = (0, (Ny-1) * h, (Nx-1) * h, 0)
+
+    fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+    fig.suptitle(titre_fenetre, fontsize=16)
+
+    champs = {
+        "Fonction de courant":    (psi, axes[0, 0]),
+        "Champ de pressions":     (pres, axes[0, 1]),
+        "Vitesse horizontale (u)":(u,    axes[1, 0]),
+        "Vitesse verticale (v)":  (v,    axes[1, 1])
+    }
+
+    for titre, (donnees, ax) in champs.items():
+        im = ax.imshow(donnees, cmap='viridis', interpolation='none', extent=ext)
+        fig.colorbar(im, ax=ax)
+        ax.set_title(titre)
+        ax.set_xlabel("X [m]")
+        ax.set_ylabel("Y [m]")
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+
+    plt.tight_layout()
+    plt.show()
+
+    x_val = np.arange(Ny) * h   
+    y_val = np.arange(Nx) * h   
+    X_grid, Y_grid = np.meshgrid(x_val, y_val)
+
+    plt.figure(figsize=(12, 6))
+    plt.gca().invert_yaxis()
+    plt.title("Lignes de courant", fontsize=18)
+    plt.streamplot(X_grid, Y_grid, u, v, density=2.0, color='cyan', linewidth=1.2, arrowsize=1.5, broken_streamlines=False)
+    plt.gca().set_facecolor('black')
+    plt.xlabel("X [m]")
+    plt.ylabel("Y [m]")
+    plt.show()
+
+
+def main(cas, Q2_param=0.0, Q4_param=0.0, psi_obstacle=None):
+
+    if cas == 1:
+        h = 0.5
+
+        num = np.loadtxt('Configuration/1-num.txt', dtype=int).T
+        dom = np.loadtxt('Configuration/1-dom.txt', dtype=int).T
+        cl  = np.loadtxt('Configuration/1-cl.txt',  dtype=float).T
+
+        psi = Laplacien(num, dom, cl)
+        u, v = velocity(psi, dom, h)
+        pres = pressure(u, v, C=0)
+
+        tracer_resultats(psi, pres, u, v, dom, h, "Analyse du Canal Rectiligne")
+
+    elif cas == 2:
+        print(f"    Q1={Q1:.2f}, Q2={Q2_param:.2f}, Q3={Q3:.2f}, Q4={Q4_param:.2f}")
+        h = 0.02
+
+        num = np.loadtxt('Configuration/2-num.txt', dtype=int).T
+        dom = np.loadtxt('Configuration/2-dom.txt', dtype=int).T
+
+        contour_obj = np.loadtxt('Configuration/2-contourObj.txt', dtype=int)
+        i_bord = contour_obj[:, 1]   
+        j_bord = contour_obj[:, 0]   
+
+        cl = generer_cl_obstacle(dom, h, Q1, Q2_param, Q3, Q4_param,
+                                  psi_obstacle=psi_obstacle)
+
+        psi = Laplacien(num, dom, cl)
+        u, v = velocity(psi, dom, h)
+
+        u_bord = np.array([u[i_bord[k], j_bord[k]] for k in range(len(i_bord))])
+        v_bord = np.array([v[i_bord[k], j_bord[k]] for k in range(len(i_bord))])
+
+        x_bord = j_bord * h   
+        y_bord = i_bord * h   
+
+        circulation = circu(u_bord, v_bord, x_bord, y_bord)
+        print(f"Circulation : {circulation:.4f} m²/s")
+
+        pres = pressure(u, v, C=100)
+        p_bord = pressure(u_bord, v_bord, C=100)
+
+        Fx, Fy = force(p_bord, x_bord, y_bord)
+        print(f"Force de traînée  (Fx) : {Fx:.4f} N/m")
+        print(f"Force de portance (Fy) : {Fy:.4f} N/m")
+
+        tracer_resultats(psi, pres, u, v, dom, h, f"Obstacle profilé — Q1={Q1:.1f}, Q2={Q2_param:.1f}")
+
+    elif cas == 4:
+        h = 0.02
+        num = np.loadtxt('Configuration/2-num.txt', dtype=int).T
+        dom = np.loadtxt('Configuration/2-dom.txt', dtype=int).T
+        contour_obj = np.loadtxt('Configuration/2-contourObj.txt', dtype=int)
+        i_bord = contour_obj[:, 1]
+        j_bord = contour_obj[:, 0]
+
+        print("Recherche de la circulation nulle en cours")
+        valeurs_test = np.linspace(16.2, 1, 20) 
+
+        for idx, psi_test in enumerate(valeurs_test):
+            print(f"Test {idx+1}/{len(valeurs_test)} : calcul pour psi = {psi_test:.3f}...")
+            
+            cl_test = generer_cl_obstacle(dom, h, Q1, Q1, Q3, Q3, psi_obstacle=psi_test)
+            psi_tmp = Laplacien(num, dom, cl_test)
+            u_tmp, v_tmp = velocity(psi_tmp, dom, h)
+            
+            u_b = np.array([u_tmp[i_bord[k], j_bord[k]] for k in range(len(i_bord))])
+            v_b = np.array([v_tmp[i_bord[k], j_bord[k]] for k in range(len(i_bord))])
+            
+            circ = circu(u_b, v_b, j_bord * h, i_bord * h)
+            print(f"Circulation obtenue : {circ:.4f}")
+            
+            if abs(circ) < 0.05: 
+                print(f"Valeur trouvée : psi_obstacle = {psi_test:.3f} <<<")
+                main(2, Q2_param=Q1, Q4_param=Q3, psi_obstacle=psi_test)
+                break
+            
+    elif cas == 5:
+        h = 0.02
+        num = np.loadtxt('Configuration/2-num.txt', dtype=int).T
+        dom = np.loadtxt('Configuration/2-dom.txt', dtype=int).T
+        contour_obj = np.loadtxt('Configuration/2-contourObj.txt', dtype=int)
+        i_bord = contour_obj[:, 1]
+        j_bord = contour_obj[:, 0]
+
+        Nx, Ny = dom.shape
+        Ly = (Nx - 1) * h
+        Lx = (Ny - 1) * h
+
+        U_inf = 8 + 0.3 * 6 + 0.1 * 1  
+        alphas_deg = np.linspace(-15, 15, 7)
+        gammas = []
+        sin_alphas = []
+
+        idx_tip = np.argmax(j_bord)
+        i_tip = i_bord[idx_tip]
+        j_tip = j_bord[idx_tip]
+
+        print(f"Vitesse incidente fixée : U_inf = {U_inf} m/s")
+        print(f"Coordonnées de la pointe arrière (i, j) = ({i_tip}, {j_tip})")
+
+        for alpha in alphas_deg:
+            alpha_rad = np.radians(alpha)
+            sin_alphas.append(np.sin(alpha_rad))
+
+            U_x = U_inf * np.cos(alpha_rad)
+            U_y = U_inf * np.sin(alpha_rad)
+            
+            Q1_a = U_x * Ly
+            Q2_a = U_y * Lx
+            Q3_a = Q1_a
+            Q4_a = Q2_a
+
+            print(f"\nRecherche Kutta pour alpha = {alpha:.1f}°")
+            
+            psi_milieu = (Q1_a + Q2_a) / 2.0
+            psi_1 = psi_milieu - 5.0
+            psi_2 = psi_milieu + 5.0
+            
+            cl_1 = generer_cl_obstacle(dom, h, Q1_a, Q2_a, Q3_a, Q4_a, psi_obstacle=psi_1)
+            psi_tmp1 = Laplacien(num, dom, cl_1)
+            u_tmp1, v_tmp1 = velocity(psi_tmp1, dom, h)
+            v_1 = v_tmp1[i_tip, j_tip + 2] 
+
+            cl_2 = generer_cl_obstacle(dom, h, Q1_a, Q2_a, Q3_a, Q4_a, psi_obstacle=psi_2)
+            psi_tmp2 = Laplacien(num, dom, cl_2)
+            u_tmp2, v_tmp2 = velocity(psi_tmp2, dom, h)
+            v_2 = v_tmp2[i_tip, j_tip + 2]
+
+            pente = (v_2 - v_1) / (psi_2 - psi_1)
+            best_psi = psi_1 - (v_1 / pente)
+            
+            if abs(best_psi - psi_milieu) > 50:
+                print("   [!] Pente instable, limitation de psi_opt.")
+                best_psi = psi_milieu
+            
+            cl_final = generer_cl_obstacle(dom, h, Q1_a, Q2_a, Q3_a, Q4_a, psi_obstacle=best_psi)
+            psi_final = Laplacien(num, dom, cl_final)
+            u_final, v_final = velocity(psi_final, dom, h)
+            
+            min_v_sillage = abs(v_final[i_tip, j_tip + 2])
+            
+            u_b = np.array([u_final[i_bord[k], j_bord[k]] for k in range(len(i_bord))])
+            v_b = np.array([v_final[i_bord[k], j_bord[k]] for k in range(len(i_bord))])
+            circ = circu(u_b, v_b, j_bord * h, i_bord * h)
+            
+            gammas.append(circ)
+            print(f"Kutta validé ! psi_optimal = {best_psi:.3f} | V_verticale sillage = {min_v_sillage:.5f} m/s | Circulation = {circ:.4f}")
+
+            if abs(alpha - 5.0) < 0.1:
+                psi_plot = psi_final
+                u_plot = u_final
+                v_plot = v_final
+                pres_plot = pressure(u_plot, v_plot, C=100)
+
+        plt.figure(figsize=(8, 6))
+        plt.plot(sin_alphas, gammas, 'b-o', linewidth=2.5, markersize=8)
+        plt.title(r"Vérification de la théorie des profils minces : $\Gamma$ vs $\sin(\alpha)$", fontsize=14)
+        plt.xlabel(r"$\sin(\alpha)$", fontsize=12)
+        plt.ylabel(r"Circulation $\Gamma$ [$m^2/s$]", fontsize=12)
+        plt.grid(True, linestyle='--', alpha=0.7)
+        plt.show()
+
+        tracer_resultats(psi_plot, pres_plot, u_plot, v_plot, dom, h, "Écoulement respectant la Condition de Kutta (alpha = 5°)")
+        
+    elif cas == 6:
+        h = 0.02
+        num = np.loadtxt('Configuration/2-num.txt', dtype=int).T
+        dom = np.loadtxt('Configuration/2-dom.txt', dtype=int).T
+        contour_obj = np.loadtxt('Configuration/2-contourObj.txt', dtype=int)
+        i_bord = contour_obj[:, 1]
+        j_bord = contour_obj[:, 0]
+
+        Nx, Ny = dom.shape
+        Ly = (Nx - 1) * h
+        Lx = (Ny - 1) * h
+
+        alpha_fix_deg = 20 + 2 * 6 + 0.8 * 1  
+        alpha_rad = np.radians(alpha_fix_deg)
+        
+        U_infs = np.linspace(5, 20, 6)
+        gammas = []
+
+        idx_tip = np.argmax(j_bord)
+        i_tip = i_bord[idx_tip]
+        j_tip = j_bord[idx_tip]
+
+        print(f"Angle d'incidence fixé : alpha = {alpha_fix_deg}°")
+
+        for U_inf in U_infs:
+            U_x = U_inf * np.cos(alpha_rad)
+            U_y = U_inf * np.sin(alpha_rad)
+            
+            Q1_a = U_x * Ly
+            Q2_a = U_y * Lx
+            Q3_a = Q1_a
+            Q4_a = Q2_a
+
+            print(f"\nRecherche Kutta pour U_inf = {U_inf:.1f} m/s ...")
+            
+            psi_milieu = (Q1_a + Q2_a) / 2.0
+            psi_1 = psi_milieu - 5.0
+            psi_2 = psi_milieu + 5.0
+            
+            cl_1 = generer_cl_obstacle(dom, h, Q1_a, Q2_a, Q3_a, Q4_a, psi_obstacle=psi_1)
+            psi_tmp1 = Laplacien(num, dom, cl_1)
+            _, v_tmp1 = velocity(psi_tmp1, dom, h)
+            v_1 = v_tmp1[i_tip, j_tip + 2] 
+
+            cl_2 = generer_cl_obstacle(dom, h, Q1_a, Q2_a, Q3_a, Q4_a, psi_obstacle=psi_2)
+            psi_tmp2 = Laplacien(num, dom, cl_2)
+            _, v_tmp2 = velocity(psi_tmp2, dom, h)
+            v_2 = v_tmp2[i_tip, j_tip + 2]
+
+            pente = (v_2 - v_1) / (psi_2 - psi_1)
+            best_psi = psi_1 - (v_1 / pente)
+            
+            cl_final = generer_cl_obstacle(dom, h, Q1_a, Q2_a, Q3_a, Q4_a, psi_obstacle=best_psi)
+            psi_final = Laplacien(num, dom, cl_final)
+            u_final, v_final = velocity(psi_final, dom, h)
+            
+            u_b = np.array([u_final[i_bord[k], j_bord[k]] for k in range(len(i_bord))])
+            v_b = np.array([v_final[i_bord[k], j_bord[k]] for k in range(len(i_bord))])
+            circ = circu(u_b, v_b, j_bord * h, i_bord * h)
+            
+            gammas.append(circ)
+            print(f"psi_optimal = {best_psi:.3f} | Circulation = {circ:.4f}")
+
+        plt.figure(figsize=(8, 6))
+        plt.plot(U_infs, gammas, 'g-o', linewidth=2.5, markersize=8, color='darkorange')
+        plt.title(r"Vérification : Circulation $\Gamma$ vs Amplitude de la vitesse $U_{\infty}$", fontsize=14)
+        plt.xlabel(r"Amplitude de la vitesse $U_{\infty}$ [m/s]", fontsize=12)
+        plt.ylabel(r"Circulation $\Gamma$ [$m^2/s$]", fontsize=12)
+        plt.grid(True, linestyle='--', alpha=0.7)
+        
+        plt.xlim(left=0)
+        plt.ylim(bottom=0)
+        
+        plt.show()
+        
+    elif cas == 7:
+        h = 0.02
+        num = np.loadtxt('Configuration/2-num.txt', dtype=int).T
+        dom = np.loadtxt('Configuration/2-dom.txt', dtype=int).T
+        contour_obj = np.loadtxt('Configuration/2-contourObj.txt', dtype=int)
+        i_bord = contour_obj[:, 1]
+        j_bord = contour_obj[:, 0]
+
+        Nx, Ny = dom.shape
+        Ly = (Nx - 1) * h
+        Lx = (Ny - 1) * h
+
+        alpha_fix_deg = 20 + 2 * 6 + 0.8 * 1  
+        alpha_rad = np.radians(alpha_fix_deg)
+        rho = 1.2
+        
+        U_infs = np.linspace(5, 20, 6)
+        portances_FL = []
+
+        idx_tip = np.argmax(j_bord)
+        i_tip = i_bord[idx_tip]
+        j_tip = j_bord[idx_tip]
+
+        print(f"Angle d'incidence fixé : alpha = {alpha_fix_deg}°")
+
+        for U_inf in U_infs:
+            U_x = U_inf * np.cos(alpha_rad)
+            U_y = U_inf * np.sin(alpha_rad)
+            
+            Q1_a = U_x * Ly
+            Q2_a = U_y * Lx
+            Q3_a = Q1_a
+            Q4_a = Q2_a
+
+            print(f"\nCalcul pour U_inf = {U_inf:.1f} m/s ...")
+            
+            psi_milieu = (Q1_a + Q2_a) / 2.0
+            psi_1 = psi_milieu - 5.0
+            psi_2 = psi_milieu + 5.0
+            
+            cl_1 = generer_cl_obstacle(dom, h, Q1_a, Q2_a, Q3_a, Q4_a, psi_obstacle=psi_1)
+            psi_tmp1 = Laplacien(num, dom, cl_1)
+            _, v_tmp1 = velocity(psi_tmp1, dom, h)
+            v_1 = v_tmp1[i_tip, j_tip + 2] 
+
+            cl_2 = generer_cl_obstacle(dom, h, Q1_a, Q2_a, Q3_a, Q4_a, psi_obstacle=psi_2)
+            psi_tmp2 = Laplacien(num, dom, cl_2)
+            _, v_tmp2 = velocity(psi_tmp2, dom, h)
+            v_2 = v_tmp2[i_tip, j_tip + 2]
+
+            pente = (v_2 - v_1) / (psi_2 - psi_1)
+            best_psi = psi_1 - (v_1 / pente)
+            
+            cl_final = generer_cl_obstacle(dom, h, Q1_a, Q2_a, Q3_a, Q4_a, psi_obstacle=best_psi)
+            psi_final = Laplacien(num, dom, cl_final)
+            u_final, v_final = velocity(psi_final, dom, h)
+            
+            u_b = np.array([u_final[i_bord[k], j_bord[k]] for k in range(len(i_bord))])
+            v_b = np.array([v_final[i_bord[k], j_bord[k]] for k in range(len(i_bord))])
+            circ = circu(u_b, v_b, j_bord * h, i_bord * h)
+            
+            F_L = rho * U_inf * circ
+            portances_FL.append(F_L)
+            
+            print(f"Circulation = {circ:.4f} | Portance F_L = {F_L:.2f} N/m")
+
+        plt.figure(figsize=(8, 6))
+        plt.plot(U_infs, portances_FL, 'm-o', linewidth=2.5, markersize=8, color='purple')
+        plt.title(r"Théorème de Kutta-Joukowski : Portance $F_L$ vs Vitesse $U_{\infty}$", fontsize=14)
+        plt.xlabel(r"Amplitude de la vitesse $U_{\infty}$ [m/s]", fontsize=12)
+        plt.ylabel(r"Force de portance $F_L$ [N/m]", fontsize=12)
+        plt.grid(True, linestyle='--', alpha=0.7)
+        
+        plt.xlim(left=0)
+        plt.ylim(bottom=0)
+        
+        plt.show()
+    else:
+        print("Cas non reconnu")
 
 main(7)
